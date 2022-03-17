@@ -17,15 +17,12 @@ body:
 
         const CountingComponent = () => {
           const [count, setCount] = useState(0);
-
           useEffect(() => {
-            const interval = setTimeout(() => setCount(count + 1), 1000);
+            const interval = setInterval(() => setCount(count + 1), 1000);
             return () => {
-              clearTimeout(interval);
+              clearInterval(interval);
             };
           }, []);
-
-          setInterval(() => setCount(count + 1), 1000);
           return <div>Count value is {count}</div>;
         }
 
@@ -59,4 +56,4 @@ body:
       description: |
         Add any other context about the problem here.
       placeholder: |
-        Example transform to convert useState and useEffect of ReactJS with createSignal and onCleanup of SolidJS.
+        Example transform to convert useState/useEffect of ReactJS to createSignal/onCleanup of SolidJS.
