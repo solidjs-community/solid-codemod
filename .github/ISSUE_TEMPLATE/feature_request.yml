@@ -1,0 +1,62 @@
+name: Feature Request
+description: These issues are for **concrete and actionable proposals**. If you just have
+  a general problem that you would like to brainstorm, open a Discussion instead.
+title: "[Feature]: "
+labels: ["enhancement"]
+
+body:
+  - type: textarea
+    attributes:
+      label: Input code
+      description: |
+        Provide a minimal code for which you need transformation to be supported.
+      placeholder: |
+        ```ts
+        import React, { useState, useEffect } from "react";
+        import { render } from "react-dom"; 
+
+        const CountingComponent = () => {
+          const [count, setCount] = useState(0);
+
+          useEffect(() => {
+            const interval = setTimeout(() => setCount(count + 1), 1000);
+            return () => {
+              clearTimeout(interval);
+            };
+          }, []);
+
+          setInterval(() => setCount(count + 1), 1000);
+          return <div>Count value is {count}</div>;
+        }
+
+        render(() => <CountingComponent />, document.getElementById("app"));
+        ```
+    validations:
+      required: true
+
+  - type: textarea
+    attributes:
+      label: Expected Output
+      description: The expected transformed output for the provided code snippet.
+      placeholder: |
+        ```ts
+        import { createSignal, onCleanup } from "solid-js";
+        import { render } from "solid-js/web";
+
+        const CountingComponent = () => {
+          const [count, setCount] = createSignal(0);
+          const interval = setInterval(() => setCount(count + 1), 1000);
+          onCleanup(() => clearInterval(interval));
+          return <div>Count value is {count()}</div>;
+        };
+
+        render(() => <CountingComponent />, document.getElementById("app"));
+        ```
+
+  - type: textarea
+    attributes:
+      label: Additional context
+      description: |
+        Add any other context about the problem here.
+      placeholder: |
+        Example transform to convert useState and useEffect of ReactJS with createSignal and onCleanup of SolidJS.
