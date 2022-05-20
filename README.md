@@ -1,4 +1,8 @@
-# solid-codemod
+<p>
+  <img width="100%" src="https://assets.solidjs.com/banner?type=Codemod&background=tiles&project=%20" alt="Solid ARIA">
+</p>
+
+# Solid Codemod
 
 This repository is created to store codemod scripts for use with
 [JSCodeshift][jscodeshift] that help update [SolidJS][solidjs] APIs.
