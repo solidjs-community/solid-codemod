@@ -1,0 +1,43 @@
+{
+	"name": "solid-codemod",
+	"version": "0.2.0",
+	"description": "Codemod scripts for SolidJS JavaScript library",
+	"homepage": "https://github.com/solidjs-community/solid-codemod",
+	"license": "MIT",
+	"type": "module",
+	"bin": {
+		"solid-codemod": "./bin/solid-codemod.js"
+	},
+	"scripts": {
+		"test": "solid-codemod"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/solidjs-community/solid-codemod.git"
+	},
+	"dependencies": {
+		"chalk": "^5.4.1",
+		"cli-diff": "^1.0.0",
+		"globby": "^14.1.0",
+		"jscodeshift": "^17.3.0",
+		"prettier": "^3.5.3",
+		"solid-js": "^1.9.7",
+		"typescript": "^5.8.3"
+	},
+	"prettier": {
+		"printWidth": 70,
+		"useTabs": true,
+		"semi": false,
+		"singleQuote": true,
+		"quoteProps": "as-needed",
+		"jsxSingleQuote": false,
+		"trailingComma": "all",
+		"bracketSpacing": true,
+		"bracketSameLine": false,
+		"arrowParens": "avoid",
+		"proseWrap": "never",
+		"endOfLine": "lf",
+		"singleAttributePerLine": true,
+		"embeddedLanguageFormatting": "off"
+	}
+}
