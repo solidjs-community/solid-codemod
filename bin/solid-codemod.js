@@ -2,19 +2,14 @@
 
 import path from 'path'
 import { fileURLToPath } from 'url'
-import { exit } from 'process'
-import { createRequire } from 'node:module'
-import { spawn } from 'node:child_process'
 
-import diff from 'cli-diff'
-
-const diffFiles = diff.default || diff
-
+import { runTransformer } from './run-transformer.js'
 import {
 	blue,
 	copy,
+	diffFiles,
 	getDirectories,
-	glob,
+	getFiles,
 	green,
 	log,
 	prettier,
@@ -26,10 +21,10 @@ import {
 
 blue('SolidJS Codemod')
 
-const require = createRequire(import.meta.url)
 const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
-const jscodeshiftExecutable = require.resolve('.bin/jscodeshift')
+
+process.on('exit', () => console.log())
 
 // get transformers list
 
@@ -39,7 +34,9 @@ const transformersDirectory = path.join(
 	'transforms',
 )
 
-const transformers = getDirectories(transformersDirectory)
+const transformers = /** @type string[] */ getDirectories(
+	transformersDirectory,
+)
 	.map(version =>
 		getDirectories(path.join(transformersDirectory, version)).map(x =>
 			path.join(version, x).replace(/\\/g, '/'),
@@ -50,10 +47,17 @@ const transformers = getDirectories(transformersDirectory)
 // get input
 
 const input = {
+	/** @type {string[]} */
 	transformers: [],
-	target: false,
-	write: false,
+	/** @type {undefined | string[]} */
+	target: undefined,
+	/** @type {string[]} */
 	files: [],
+	/** @type {string[]} */
+	JSFiles: [],
+	/** @type {string[]} */
+	TSFiles: [],
+	write: false,
 }
 
 // naive but accepts array of transformers and array of paths
@@ -86,155 +90,116 @@ input.transformers.forEach(x => {
 	if (!transformers.includes(x)) {
 		red(`Transformer "${x}" doesn't exists`)
 
-		log(`Possible transformer values`)
+		green(`Possible transformer values`)
 
-		green(transformers.map(x => ' - ' + x).join('\n') + '\n')
+		log(transformers.map(x => ' - ' + x).join('\n'))
 
-		exit(1)
+		process.exit(1)
 	}
 })
 
-// default to current directory
+// run transformers on user files
 
-input.target = input.target || ['.']
+if (input.transformers.length) {
+	// default to current directory
 
-// get files
+	input.target =
+		input.target && input.target.length ? input.target : ['.']
 
-input.files = glob(input.target)
+	// get files
 
-input.JSFiles = input.files.filter(x => /(jsx|js)$/.test(x))
-input.TSFiles = input.files.filter(x => /(tsx|ts)$/.test(x))
+	input.files = getFiles(input.target)
 
-// run transformers
+	input.JSFiles = input.files.filter(x => /\.(jsx|js)$/.test(x))
+	input.TSFiles = input.files.filter(x => /\.(tsx|ts)$/.test(x))
 
-if (!input.transformers.length) {
-	// run only tests files
-	blue('Running tests..\n')
+	blue('Running Transforms...\n')
 
-	process.chdir(path.dirname(__dirname))
-
-	// run transformers
-	transformers.forEach(async transformer => {
-		const transformerDirectory = path.join(
-			transformersDirectory,
-			transformer,
-		)
-
-		const transformerFile = path.join(
-			transformerDirectory,
-			'index.js',
-		)
-
-		const tests = glob(
-			path.join(transformerDirectory, 'test'),
-		).filter(x => /input\.(js|jsx|ts|tsx)$/.test(x))
-
-		tests.forEach(async test => {
-			const tmp = test.replace('input.', 'tmp.output.')
-			const output = test.replace('input.', 'output.')
-
-			prettier(test)
-			prettier(output)
-
-			const expected = read(output)
-
-			copy(test, tmp)
-
-			runTransformer({
-				files: [tmp],
-				transformerFile,
-				flags: { write: true },
-			}).then(() => {
-				prettier(tmp)
-
-				const result = read(tmp)
-
-				if (result !== expected) {
-					blue(test)
-					red('Test Failed, output wont match!\n')
-					console.log(
-						diffFiles(
-							{ name: output, content: expected },
-							{ name: tmp, content: result },
-						),
-					)
-
-					exit()
-				} else {
-					green(test)
-				}
-			})
-		})
-	})
-} else {
-	// run transformers on user files
-	input.transformers.forEach(async transformer => {
+	for (const transformer of input.transformers) {
 		const transformerFile = path.join(
 			transformersDirectory,
 			transformer,
 			'index.js',
 		)
+
+		const promises = []
 
 		for (const files of [input.JSFiles, input.TSFiles]) {
 			if (files.length) {
-				const result = await runTransformer({
-					files,
-					transformerFile,
-					flags: input,
-				})
+				promises.push(
+					runTransformer({
+						files,
+						transformerFile,
+						flags: input,
+					}),
+				)
 			}
 		}
-	})
+
+		// just in case await the current trnasform to go to the next one
+		await Promise.all(promises)
+	}
+
+	green('DONE')
+	process.exit()
 }
 
-async function runTransformer({
-	files,
-	transformerFile,
-	flags = {},
-}) {
-	const parser = /(tsx|ts)$/.test(files[0]) ? 'tsx' : 'babel'
+// run transformers on test files
 
-	let args = [jscodeshiftExecutable]
+blue('Running Transform Tests..\n')
 
-	if (!flags.write) {
-		args.push('--dry')
+process.chdir(path.dirname(__dirname))
+
+for (const transformer of transformers) {
+	const transformerDirectory = path.join(
+		transformersDirectory,
+		transformer,
+	)
+
+	const transformerFile = path.join(transformerDirectory, 'index.js')
+
+	const tests = getFiles(
+		path.join(transformerDirectory, 'test'),
+	).filter(x => /input\.(js|jsx|ts|tsx)$/.test(x))
+
+	for (const test of tests) {
+		const tmp = test.replace('input.', 'tmp.output.')
+		const output = test.replace('input.', 'output.')
+
+		prettier(test)
+		prettier(output)
+
+		const expected = read(output)
+
+		copy(test, tmp)
+
+		await runTransformer({
+			files: [tmp],
+			transformerFile,
+			flags: { write: true },
+		})
+
+		prettier(tmp)
+
+		const result = read(tmp)
+
+		if (result !== expected) {
+			red("Test Failed, output doesn't match!")
+
+			blue('    ' + test)
+
+			console.log(
+				diffFiles(
+					{ name: output, content: expected },
+					{ name: tmp, content: result },
+				),
+			)
+
+			process.exit(1)
+		} else {
+			green(test)
+		}
 	}
 
-	args.push('--verbose', 2)
-
-	args.push('--ignore-pattern=**/node_modules/**')
-
-	args.push('--parser', parser)
-
-	if (parser === 'tsx') {
-		args.push('--extensions=tsx,ts,jsx,js')
-	} else {
-		args.push('--extensions=jsx,js')
-	}
-
-	args = args.concat(['--transform', transformerFile])
-
-	args = args.concat(files)
-
-	const child = spawn('node', args)
-
-	const result = { stdout: '', stderr: '' }
-
-	for await (const chunk of child.stdout) {
-		console.log(chunk.toString().trim())
-		result.stdout += chunk
-	}
-
-	for await (const chunk of child.stderr) {
-		result.stderr += chunk
-	}
-	const exitCode = await new Promise((resolve, reject) => {
-		child.on('close', resolve)
-	})
-
-	if (exitCode) {
-		red(result.stderr)
-		exit()
-	}
-	return result
+	green('DONE')
 }

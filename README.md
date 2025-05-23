@@ -13,9 +13,11 @@ powered by [JSCodeshift][jscodeshift].
 
 - `transforms` - name of the transform (many can be used separated by
   spaces)
-- `target` - directory or files to transform (many can be used
+- `target` - directory or file to transform (many can be used
   separated by spaces)
 - `write` - write changes, it defaults to dry run
+
+NOTE: It doesnt accept glob.
 
 ## Codemod Transforms
 
@@ -23,11 +25,11 @@ powered by [JSCodeshift][jscodeshift].
 | ----------------------------------------- | ------------------ |
 | `solid-js@2/jsx-properties-to-attributes` | a test transformer |
 
-## Writting Transforms
+## Writing Transforms
 
 1. Look at the `transforms` folder, duplicate and edit a transform.
-2. test your transform with `npm run test`
-3. add the name to this readme file
+2. Test your transform with `npm run test`
+3. Add the name to this readme file with a description
 
 ## Contributing
 
