@@ -1,6 +1,7 @@
 node_modules
 package-lock.json
-tmp.output.js
-tmp.output.jsx
-tmp.output.ts
-tmp.output.tsx
+output.js
+output.jsx
+output.ts
+output.tsx
+data/test-data.json

@@ -16,6 +16,7 @@
 		"url": "git+https://github.com/solidjs-community/solid-codemod.git"
 	},
 	"dependencies": {
+		"@types/jscodeshift": "^17.3.0",
 		"@types/node": "^22.15.21",
 		"chalk": "^5.4.1",
 		"cli-diff": "^1.0.0",

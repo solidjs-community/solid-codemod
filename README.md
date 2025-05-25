@@ -9,15 +9,19 @@ powered by [JSCodeshift][jscodeshift].
 
 ## Usage
 
-`npx solid-codemod <transforms> --target <target> --write`
+`npx solid-codemod <transforms> <paths> --write`
 
-- `transforms` - name of the transform (many can be used separated by
-  spaces)
-- `target` - directory or file to transform (many can be used
-  separated by spaces)
-- `write` - write changes, it defaults to dry run
+- `transforms` - transforms names
+- `paths` - directories or files to transform
+- `--write` or `-w` - write changes (it defaults to dry run)
 
-NOTE: It doesnt accept glob.
+NOTES:
+
+- It doesnt accept or use globs.
+- Many `transforms` or `paths` can be provided separated by spaces
+- When `paths` is not provided it runs tests on the selected
+  transforms
+- Once its done it will display a green `DONE`
 
 ## Codemod Transforms
 
@@ -28,8 +32,9 @@ NOTE: It doesnt accept glob.
 ## Writing Transforms
 
 1. Look at the `transforms` folder, duplicate and edit a transform.
-2. Test your transform with `npm run test`
-3. Add the name to this readme file with a description
+2. Test your transform with `solid-codemod your-transform-name`
+3. Add the transform to the readme with a description
+4. May use `src/transforms/shared.js` for shared code
 
 ## Contributing
 
