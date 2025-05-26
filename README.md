@@ -22,6 +22,7 @@ NOTES:
 - When `paths` is not provided it runs tests on the selected
   transforms
 - Once its done it will display a green `DONE`
+- Transforms should modify code "when reliable possible"
 
 ## Codemod Transforms
 
