@@ -1,13 +1,17 @@
-import { render } from 'solid-js/web'
+// WIP do not mind
 
-function Component(props) {
-	return (
-		<video
-			aria-hidden
-			disableRemoteplayback={true}
-			onClick="lalal"
-		></video>
-	)
+const o = {
+	autoFocus: true,
 }
 
-render(() => <Component />, document.getElementById('app'))
+const test = [
+	<video {...o}></video>,
+	<video aria-hidden></video>,
+	<video aria-hidden={undefined}></video>,
+	<video aria-hidden={true}></video>,
+	<video aria-hidden={false}></video>,
+	<video aria-hidden="true"></video>,
+	<video aria-hidden="False"></video>,
+	<video onClick={() => {}}></video>,
+	<video disableRemotePlayback={true}></video>,
+]
