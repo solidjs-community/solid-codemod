@@ -1,39 +1,67 @@
-import solidv2 from '../data/jsx-solidv2.json' with { type: 'json' }
-
 /**
- * Returns `true` when solid understands the html/dom tag.
- *
- * @param {string} tagName
- * @returns {boolean}
+ * @param {import('jscodeshift').ASTPath<
+ * 	import('jscodeshift').JSXElement
+ * >} path
+ * @returns {string}
  */
-export function isValidTag(tagName) {
-	return !!solidv2.tags[tagName] || tagName.includes('-')
+export function getTagNameFromJSXElement(path) {
+	const openingElement = path.node.openingElement
+
+	const tagNameNode = openingElement.name
+
+	let tagName
+
+	switch (tagNameNode.type) {
+		case 'JSXIdentifier':
+			tagName = tagNameNode.name
+			break
+		case 'JSXMemberExpression':
+			let parts = []
+			let current = tagNameNode
+			while (current.type === 'JSXMemberExpression') {
+				parts.unshift(current.property.name)
+				current = current.object
+			}
+			parts.unshift(current.name)
+			tagName = parts.join('.')
+			break
+		case 'JSXNamespacedName':
+			tagName = `${tagNameNode.namespace.name}:${tagNameNode.name.name}`
+			break
+		default: {
+			throw new Error(`[Unknown Tag Type: ${tagNameNode.type}]`)
+		}
+	}
+
+	return tagName
 }
 
 /**
- * Returns `true` when solid understands the html/dom attribute.
- *
- * @param {string} tagName
- * @param {string} attributeName
- * @returns {boolean}
+ * @param {import('jscodeshift').JSXAttribute} attr
+ * @returns {[string, string]}
  */
-export function isValidAttribute(tagName, attributeName) {
-	return (
-		// web components use whatever they want
-		tagName.includes('-') ||
-		// data-attributes
-		attributeName.startsWith('data-') ||
-		// namespaced
-		attributeName.startsWith('on:') ||
-		attributeName.startsWith('use:') ||
-		attributeName.startsWith('attr:') ||
-		attributeName.startsWith('prop:') ||
-		attributeName.startsWith('bool:') ||
-		// tag attribute
-		!!solidv2.tags[tagName][attributeName] ||
-		// global attribute
-		!!solidv2.attributes.global[attributeName] ||
-		// custom attribute
-		!!solidv2.attributes.custom[attributeName]
-	)
+export function getAttributeNameAndValueFromJSXAttribute(attr) {
+	let attributeName
+	let attributeValue
+
+	const name = attr.name
+	const value = attr.value
+
+	if (name.type === 'JSXIdentifier') {
+		attributeName = name.name
+	} else if (name.type === 'JSXNamespacedName') {
+		attributeName = `${name.namespace.name}:${name.name.name}`
+	}
+
+	if (value) {
+		if (value.type === 'JSXExpressionContainer') {
+			attributeValue = j(value).toSource()
+		} else {
+			attributeValue = value.value
+		}
+	} else {
+		attributeValue = true
+	}
+
+	return [attributeName, attributeValue]
 }

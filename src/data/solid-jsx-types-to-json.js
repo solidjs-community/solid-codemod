@@ -4,6 +4,8 @@ const test = false
 
 // data
 
+const destination = './jsx-solidv2.json'
+
 const o = JSON.parse(
 	!test
 		? await fetch(
@@ -12,7 +14,7 @@ const o = JSON.parse(
 		: read('./test-data.json'),
 )
 
-const solidv2 = 'Solid Next'
+const solidV2Key = 'Solid Next'
 
 const result = {
 	tags: {},
@@ -33,7 +35,7 @@ for (const ns in o.elements) {
 		for (const [key, entry] of Object.entries(
 			o.elements[ns][tag].keys,
 		)) {
-			const value = entry.values[solidv2]
+			const value = entry.values[solidV2Key]
 			if (value) {
 				result.tags[tag][key] = value
 			}
@@ -52,7 +54,7 @@ for (const interfaceName of [
 	for (const [key, entry] of Object.entries(
 		o.keys[interfaceName].keys,
 	)) {
-		const value = entry.values[solidv2]
+		const value = entry.values[solidV2Key]
 		if (value) {
 			result.attributes.global[key] = value
 		}
@@ -61,4 +63,4 @@ for (const interfaceName of [
 
 // save
 
-write('jsx-solidv2.json', JSON.stringify(result, null, 2))
+write(destination, JSON.stringify(result, null, 2))

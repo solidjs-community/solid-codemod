@@ -4,7 +4,7 @@ function Component(props) {
 	return (
 		<video
 			aria-hidden="true"
-			disableRemoteplayback={true}
+			disableremoteplayback={true}
 			onClick="lala"
 		></video>
 	)
