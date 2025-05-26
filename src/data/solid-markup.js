@@ -5,8 +5,7 @@ const BooleanAttribute = solidv2.attributes.global.autofocus
 
 export const Markup = new (class Markup {
 	/**
-	 * Returns `true` when solid understands the html/mathml/svg/xml
-	 * tag.
+	 * Returns `true` when the html/mathml/svg/xml tag is known.
 	 *
 	 * @param {string} tagName
 	 * @returns {boolean}
@@ -16,8 +15,17 @@ export const Markup = new (class Markup {
 	}
 
 	/**
-	 * Returns `true` when solid understands the html/mathml/svg/xml
-	 * attribute.
+	 * Returns `true` when is a custom element
+	 *
+	 * @param {string} tagName
+	 * @returns {boolean}
+	 */
+	isCustomElement(tagName) {
+		return tagName.includes('-')
+	}
+
+	/**
+	 * Returns `true` when the html/mathml/svg/xml attribute is known
 	 *
 	 * @param {string} tagName
 	 * @param {string} attributeName
@@ -26,22 +34,136 @@ export const Markup = new (class Markup {
 	isKnownAttribute(tagName, attributeName) {
 		return (
 			// web components use whatever they want
-			tagName.includes('-') ||
+			this.isCustomElement(tagName) ||
 			// data-attributes
-			attributeName.startsWith('data-') ||
+			this.isDataAttribute(attributeName) ||
 			// namespaced
-			attributeName.startsWith('on:') ||
-			attributeName.startsWith('use:') ||
-			attributeName.startsWith('attr:') ||
-			attributeName.startsWith('prop:') ||
-			attributeName.startsWith('bool:') ||
+			this.isNamespacedAttribute(attributeName) ||
 			// attribute defined in the tag
-			!!solidv2.tags[tagName][attributeName] ||
+			this.isOwnAttribute(tagName, attributeName) ||
 			// global attribute
-			!!solidv2.attributes.global[attributeName] ||
+			this.isGlobalAttribute(attributeName) ||
 			// custom attribute
-			!!solidv2.attributes.custom[attributeName]
+			this.isCustomAttribute(attributeName)
 		)
+	}
+
+	/**
+	 * Returns `true` when the attribute is defined for the tag
+	 *
+	 * @param {string} tagName
+	 * @param {string} attributeName
+	 * @returns {boolean}
+	 */
+	isOwnAttribute(tagName, attributeName) {
+		return !!(
+			solidv2.tags[tagName] && solidv2.tags[tagName][attributeName]
+		)
+	}
+
+	/**
+	 * Returns `true` when is a global attribute, such `tabindex`
+	 *
+	 * @param {string} attributeName
+	 * @returns {boolean}
+	 */
+	isGlobalAttribute(attributeName) {
+		return !!solidv2.attributes.global[attributeName]
+	}
+
+	/**
+	 * Returns `true` when is a `custom` attribute, such `ref`,
+	 * `children`
+	 *
+	 * @param {string} attributeName
+	 * @returns {boolean}
+	 */
+	isCustomAttribute(attributeName) {
+		return !!solidv2.attributes.custom[attributeName]
+	}
+
+	/**
+	 * Returns `true` when is a `data-*` attribute
+	 *
+	 * @param {string} attributeName
+	 * @returns {boolean}
+	 */
+	isDataAttribute(attributeName) {
+		return attributeName.startsWith('data-')
+	}
+
+	/**
+	 * Returns `true` when is a namespaced attribute
+	 *
+	 * @param {string} attributeName
+	 * @returns {boolean}
+	 */
+	isNamespacedAttribute(attributeName) {
+		return (
+			this.isNamespacedEventListenerAttribute(attributeName) ||
+			this.isNamespacedDirectiveAttribute(attributeName) ||
+			this.isNamespacedAttrAttribute(attributeName) ||
+			this.isNamespacedPropAttribute(attributeName) ||
+			this.isNamespacedBoolAttribute(attributeName)
+		)
+	}
+
+	/**
+	 * Returns `true` when is an event listener
+	 *
+	 * @param {string} attributeName
+	 * @returns {boolean}
+	 */
+	isEventListenerAttribute(attributeName) {
+		return (
+			/^on[a-z]/i.test(attributeName) ||
+			this.isNamespacedEventListenerAttribute(attributeName)
+		)
+	}
+	/**
+	 * Returns `true` when is a namespaced `on:`
+	 *
+	 * @param {string} attributeName
+	 * @returns {boolean}
+	 */
+	isNamespacedEventListenerAttribute(attributeName) {
+		return attributeName.startsWith('on:')
+	}
+	/**
+	 * Returns `true` when is a namespaced `use:`
+	 *
+	 * @param {string} attributeName
+	 * @returns {boolean}
+	 */
+	isNamespacedDirectiveAttribute(attributeName) {
+		return attributeName.startsWith('use:')
+	}
+	/**
+	 * Returns `true` when is a namespaced `attr:`
+	 *
+	 * @param {string} attributeName
+	 * @returns {boolean}
+	 */
+	isNamespacedAttrAttribute(attributeName) {
+		return attributeName.startsWith('attr:')
+	}
+	/**
+	 * Returns `true` when is a namespaced `prop:`
+	 *
+	 * @param {string} attributeName
+	 * @returns {boolean}
+	 */
+	isNamespacedPropAttribute(attributeName) {
+		return attributeName.startsWith('prop:')
+	}
+	/**
+	 * Returns `true` when is a namespaced `bool:`
+	 *
+	 * @param {string} attributeName
+	 * @returns {boolean}
+	 */
+	isNamespacedBoolAttribute(attributeName) {
+		return attributeName.startsWith('bool:')
 	}
 
 	/**
@@ -52,10 +174,14 @@ export const Markup = new (class Markup {
 	 * @returns {boolean}
 	 */
 	isBooleanAttribute(tagName, attributeName) {
+		const attributeType = this.getAttributeJSXType(
+			tagName,
+			attributeName,
+		)
+
 		return (
 			this.isKnownAttribute(tagName, attributeName) &&
-			this.getAttributeJSXType(tagName, attributeName) ===
-				BooleanAttribute
+			attributeType === BooleanAttribute
 		)
 	}
 
@@ -89,9 +215,9 @@ export const Markup = new (class Markup {
 	 */
 
 	getAttributeJSXType(tagName, attributeName) {
-		return (
-			solidv2.tags[tagName][attributeName] ||
-			solidv2.attributes.global[attributeName]
-		)
+		return solidv2.tags[tagName] &&
+			solidv2.tags[tagName][attributeName]
+			? solidv2.tags[tagName][attributeName]
+			: solidv2.attributes.global[attributeName]
 	}
 })()
