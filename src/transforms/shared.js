@@ -14,6 +14,7 @@ export function isValidTag(tagName) {
  * Returns `true` when solid understands the html/dom attribute.
  *
  * @param {string} tagName
+ * @param {string} attributeName
  * @returns {boolean}
  */
 export function isValidAttribute(tagName, attributeName) {
