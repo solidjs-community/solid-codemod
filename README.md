@@ -26,9 +26,9 @@ NOTES:
 
 ## Codemod Transforms
 
-| name                                      | description        |
-| ----------------------------------------- | ------------------ |
-| `solid-js@2/jsx-properties-to-attributes` | a test transformer |
+| name                                      | description            |
+| ----------------------------------------- | ---------------------- |
+| `solid-js@2/jsx-properties-to-attributes` | a test transformer WIP |
 
 ## Writing Transforms
 

@@ -40,7 +40,7 @@ export function getTagNameFromJSXElement(api, path) {
 /**
  * @param {import('jscodeshift').API} api
  * @param {import('jscodeshift').JSXAttribute} attr
- * @returns {[string, string]}
+ * @returns {[string, string | boolean]}
  */
 export function getAttributeNameAndValueFromJSXAttribute(api, attr) {
 	const j = api.jscodeshift
@@ -60,8 +60,9 @@ export function getAttributeNameAndValueFromJSXAttribute(api, attr) {
 	}
 
 	if (valueNode) {
+		// TODO figure out the best value to return
 		if (valueNode.type === 'JSXExpressionContainer') {
-			attributeValue = j(valueNode).toSource()
+			attributeValue = valueNode.expression.value
 		} else {
 			attributeValue = valueNode.value
 		}
@@ -71,3 +72,34 @@ export function getAttributeNameAndValueFromJSXAttribute(api, attr) {
 
 	return [attributeName, attributeValue]
 }
+
+/** Pretty print transform changes */
+const messages = {}
+
+/**
+ * Pretty print transform log
+ *
+ * @param {import('jscodeshift').FileInfo} file
+ * @param {...any} message
+ */
+export function log(file, ...message) {
+	const fileName = file.path || 'Unknown'
+	messages[fileName] = messages[fileName] || []
+	messages[fileName].push(message.join(' '))
+}
+/**
+ * Pretty print transform warn
+ *
+ * @param {import('jscodeshift').FileInfo} file
+ * @param {...any} message
+ */
+export function warn(file, ...message) {
+	log(file, `\x1b[33m${message.join(' ')}\x1b[0m`)
+}
+
+process.on('exit', () => {
+	for (const file in messages) {
+		console.log(`\x1b[32m${file}\x1b[0m`)
+		console.log(messages[file].map(x => '- ' + x).join('\n'))
+	}
+})
