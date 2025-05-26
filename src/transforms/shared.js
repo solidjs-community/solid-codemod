@@ -1,23 +1,24 @@
 /**
+ * @param {import('jscodeshift').API} api
  * @param {import('jscodeshift').ASTPath<
  * 	import('jscodeshift').JSXElement
  * >} path
  * @returns {string}
  */
-export function getTagNameFromJSXElement(path) {
-	const openingElement = path.node.openingElement
-
-	const tagNameNode = openingElement.name
+export function getTagNameFromJSXElement(api, path) {
+	const j = api.jscodeshift
 
 	let tagName
 
-	switch (tagNameNode.type) {
+	const nameNode = path.node.openingElement.name
+
+	switch (nameNode.type) {
 		case 'JSXIdentifier':
-			tagName = tagNameNode.name
+			tagName = nameNode.name
 			break
 		case 'JSXMemberExpression':
 			let parts = []
-			let current = tagNameNode
+			let current = nameNode
 			while (current.type === 'JSXMemberExpression') {
 				parts.unshift(current.property.name)
 				current = current.object
@@ -26,10 +27,10 @@ export function getTagNameFromJSXElement(path) {
 			tagName = parts.join('.')
 			break
 		case 'JSXNamespacedName':
-			tagName = `${tagNameNode.namespace.name}:${tagNameNode.name.name}`
+			tagName = `${nameNode.namespace.name}:${nameNode.name.name}`
 			break
 		default: {
-			throw new Error(`[Unknown Tag Type: ${tagNameNode.type}]`)
+			throw new Error(`[Unknown Tag Type: ${nameNode.type}]`)
 		}
 	}
 
@@ -37,27 +38,32 @@ export function getTagNameFromJSXElement(path) {
 }
 
 /**
+ * @param {import('jscodeshift').API} api
  * @param {import('jscodeshift').JSXAttribute} attr
  * @returns {[string, string]}
  */
-export function getAttributeNameAndValueFromJSXAttribute(attr) {
+export function getAttributeNameAndValueFromJSXAttribute(api, attr) {
+	const j = api.jscodeshift
+
 	let attributeName
 	let attributeValue
 
-	const name = attr.name
-	const value = attr.value
+	const nameNode = attr.name
+	const valueNode = attr.value
 
-	if (name.type === 'JSXIdentifier') {
-		attributeName = name.name
-	} else if (name.type === 'JSXNamespacedName') {
-		attributeName = `${name.namespace.name}:${name.name.name}`
+	if (nameNode.type === 'JSXIdentifier') {
+		attributeName = nameNode.name
+	} else if (nameNode.type === 'JSXNamespacedName') {
+		attributeName = `${nameNode.namespace.name}:${nameNode.name.name}`
+	} else {
+		throw new Error(`[Unknown Attribute Type: ${nameNode.type}]`)
 	}
 
-	if (value) {
-		if (value.type === 'JSXExpressionContainer') {
-			attributeValue = j(value).toSource()
+	if (valueNode) {
+		if (valueNode.type === 'JSXExpressionContainer') {
+			attributeValue = j(valueNode).toSource()
 		} else {
-			attributeValue = value.value
+			attributeValue = valueNode.value
 		}
 	} else {
 		attributeValue = true

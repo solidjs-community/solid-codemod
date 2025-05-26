@@ -1,4 +1,5 @@
 import { Markup } from '../../../data/solid-markup.js'
+
 import {
 	getAttributeNameAndValueFromJSXAttribute,
 	getTagNameFromJSXElement,
@@ -13,7 +14,7 @@ export default function transformer(file, api) {
 	const root = j(file.source)
 
 	root.find(j.JSXElement).forEach(path => {
-		const tagName = getTagNameFromJSXElement(path)
+		const tagName = getTagNameFromJSXElement(api, path)
 
 		const attributes = path.node.openingElement.attributes
 
@@ -21,15 +22,18 @@ export default function transformer(file, api) {
 			if (Markup.isKnownTag(tagName)) {
 				attributes.forEach(attr => {
 					if (attr.type === 'JSXAttribute') {
-						const [attributeName, attributeValue] =
-							getAttributeNameAndValueFromJSXAttribute(attr)
+						let [attributeName, attributeValue] =
+							getAttributeNameAndValueFromJSXAttribute(api, attr)
 
 						if (!Markup.isKnownAttribute(tagName, attributeName)) {
 							// fix case
+							// classList to class
 							console.log(
 								`Unkown Attribute:\n Name: ${attributeName}, Value: ${attributeValue}`,
 							)
 						} else {
+							// boolean to real boolean
+							// boolean to enumerated pseudo boolean
 						}
 					}
 				})
