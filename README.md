@@ -22,7 +22,7 @@ NOTES:
 - When `paths` is not provided it runs tests on the selected
   transforms
 - Once its done it will display a green `DONE`
-- Transforms should modify code "when reliable possible"
+- Transforms should modify code when "reliable possible"
 
 ## Codemod Transforms
 
@@ -48,6 +48,15 @@ code of the transformation you are looking for.
 For example, here is a feature request to [transform
 useState/useEffect of ReactJS to createSignal/onCleanup of
 SolidJS][feature-request-example] for your reference.
+
+## TODO
+
+- organize issues
+- provide a `classList` to `class` transform
+- finish `solid-js@2/jsx-properties-to-attributes` transform
+- document `Markup` and `shared.js` helpers
+- example usage should show more usage including testing
+- make it clear project focus on solid v2
 
 ## License
 
