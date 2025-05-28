@@ -1,4 +1,4 @@
-import { Markup } from '../../../data/solid-markup.js'
+import { SolidMarkupV2 } from '../../../data/solid-js@2/solid-markup.js'
 
 import {
 	log,
@@ -28,7 +28,7 @@ export default function transformer(file, api) {
 	root.find(j.JSXElement).forEach(path => {
 		const tagName = getTagNameFromJSXElement(api, path)
 
-		if (!Markup.isKnownTag(tagName)) {
+		if (!SolidMarkupV2.isKnownTag(tagName)) {
 			// skip JSX Components and unknown tags
 			return
 		}
@@ -41,7 +41,7 @@ export default function transformer(file, api) {
 				let [attributeName, attributeValue] =
 					getAttributeNameAndValueFromJSXAttribute(api, attr)
 
-				let isKnownAttribute = Markup.isKnownAttribute(
+				let isKnownAttribute = SolidMarkupV2.isKnownAttribute(
 					tagName,
 					attributeName,
 				)
@@ -50,7 +50,7 @@ export default function transformer(file, api) {
 				if (!isKnownAttribute) {
 					const newName = attributeName.toLowerCase()
 
-					if (Markup.isKnownAttribute(tagName, newName)) {
+					if (SolidMarkupV2.isKnownAttribute(tagName, newName)) {
 						log(
 							file,
 							`renamed attribute ´${attributeName}´ to ´${newName}´ on tag ´${tagName}´`,
@@ -62,12 +62,12 @@ export default function transformer(file, api) {
 				}
 
 				// unwrap `attr:tabIndex` -> `tabindex`
-				if (Markup.isNamespacedAttrAttribute(attributeName)) {
+				if (SolidMarkupV2.isNamespacedAttrAttribute(attributeName)) {
 					const newName = attributeName
 						.replace(/^attr:/, '')
 						.toLowerCase()
 
-					if (Markup.isKnownAttribute(tagName, newName)) {
+					if (SolidMarkupV2.isKnownAttribute(tagName, newName)) {
 						log(
 							file,
 							`renamed attribute ´${attributeName}´ to ´${newName}´ on tag ´${tagName}´`,
@@ -79,7 +79,11 @@ export default function transformer(file, api) {
 				}
 
 				// `onsubmit="return false"` -> `attr:onsubmit="return false"`
-				if (Markup.isLowerCaseEventListenerAttribute(attributeName)) {
+				if (
+					SolidMarkupV2.isLowerCaseEventListenerAttribute(
+						attributeName,
+					)
+				) {
 					if (attributeValue) {
 						if (attributeValue.type === 'StringLiteral') {
 							const newName = `attr:${attributeName}`
@@ -96,9 +100,9 @@ export default function transformer(file, api) {
 
 				// skips
 				if (
-					Markup.isDataAttribute(attributeName) ||
-					Markup.isNamespacedAttribute(attributeName) ||
-					Markup.isEventListenerAttribute(attributeName)
+					SolidMarkupV2.isDataAttribute(attributeName) ||
+					SolidMarkupV2.isNamespacedAttribute(attributeName) ||
+					SolidMarkupV2.isEventListenerAttribute(attributeName)
 				) {
 					return
 				}
@@ -107,7 +111,7 @@ export default function transformer(file, api) {
 
 				if (
 					isKnownAttribute &&
-					Markup.isBooleanAttribute(tagName, attributeName)
+					SolidMarkupV2.isBooleanAttribute(tagName, attributeName)
 				) {
 					//  BOOLEANS !
 
@@ -215,7 +219,7 @@ export default function transformer(file, api) {
 
 				if (
 					isKnownAttribute &&
-					Markup.isEnumeratedPseudoBooleanAttribute(
+					SolidMarkupV2.isEnumeratedPseudoBooleanAttribute(
 						tagName,
 						attributeName,
 					)
@@ -322,7 +326,10 @@ export default function transformer(file, api) {
 					}
 				}
 
-				if (!isKnownAttribute && !Markup.isCustomElement(tagName)) {
+				if (
+					!isKnownAttribute &&
+					!SolidMarkupV2.isCustomElement(tagName)
+				) {
 					warn(
 						file,
 						`unknown attribute ´${attributeName}´ on tag ´${tagName}´`,

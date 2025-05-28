@@ -1,10 +1,10 @@
-import solidv2 from '../data/jsx-solidv2.json' with { type: 'json' }
+import solid from './jsx.json' with { type: 'json' }
 
 // https://github.com/ryansolid/dom-expressions/blob/next/packages/dom-expressions/src/jsx-h.d.ts#L795
 // `global.autofocus` is boolean so we can assume all other booleans have the same type
-const BooleanAttribute = solidv2.attributes.global.autofocus
+const BooleanAttribute = solid.attributes.global.autofocus
 
-export const Markup = new (class Markup {
+export const SolidMarkupV2 = new (class {
 	/**
 	 * Returns `true` when the html/mathml/svg/xml tag is known.
 	 *
@@ -12,7 +12,7 @@ export const Markup = new (class Markup {
 	 * @returns {boolean}
 	 */
 	isKnownTag(tagName) {
-		return !!solidv2.tags[tagName] || this.isCustomElement(tagName)
+		return !!solid.tags[tagName] || this.isCustomElement(tagName)
 	}
 
 	/**
@@ -58,7 +58,7 @@ export const Markup = new (class Markup {
 	 */
 	isOwnAttribute(tagName, attributeName) {
 		return !!(
-			solidv2.tags[tagName] && solidv2.tags[tagName][attributeName]
+			solid.tags[tagName] && solid.tags[tagName][attributeName]
 		)
 	}
 
@@ -69,7 +69,7 @@ export const Markup = new (class Markup {
 	 * @returns {boolean}
 	 */
 	isGlobalAttribute(attributeName) {
-		return !!solidv2.attributes.global[attributeName]
+		return !!solid.attributes.global[attributeName]
 	}
 
 	/**
@@ -80,7 +80,7 @@ export const Markup = new (class Markup {
 	 * @returns {boolean}
 	 */
 	isCustomAttribute(attributeName) {
-		return !!solidv2.attributes.custom[attributeName]
+		return !!solid.attributes.custom[attributeName]
 	}
 
 	/**
@@ -235,9 +235,8 @@ export const Markup = new (class Markup {
 	 */
 
 	getAttributeJSXType(tagName, attributeName) {
-		return solidv2.tags[tagName] &&
-			solidv2.tags[tagName][attributeName]
-			? solidv2.tags[tagName][attributeName]
-			: solidv2.attributes.global[attributeName]
+		return solid.tags[tagName] && solid.tags[tagName][attributeName]
+			? solid.tags[tagName][attributeName]
+			: solid.attributes.global[attributeName]
 	}
 })()

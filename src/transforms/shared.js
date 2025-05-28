@@ -79,15 +79,6 @@ export function getAttributeNameAndValueFromJSXAttribute(api, attr) {
 	return [attributeName, attributeValue]
 }
 
-/** Pretty print transform changes */
-const messages = {}
-
-function print(file, color, message) {
-	const fileName = file.path || 'Unknown'
-	messages[fileName] = messages[fileName] || []
-	messages[fileName].push({ color, message })
-}
-
 /**
  * Pretty print transform log for N arguments
  *
@@ -97,6 +88,15 @@ function print(file, color, message) {
 export function log(file, ...message) {
 	print(file, 'log', message)
 }
+
+const messages = {}
+
+function print(file, color, message) {
+	const fileName = file.path || 'Unknown'
+	messages[fileName] = messages[fileName] || []
+	messages[fileName].push({ color, message })
+}
+
 /**
  * Pretty print transform warn for N arguments
  *

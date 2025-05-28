@@ -71,13 +71,13 @@ an attribute with that value.
 3. Add the transform to the readme with a description
 4. May use `src/transforms/shared.js` for shared code
 
+### Helpers
 
-- AST transformation means it may be possible to end with meaningless
-  changes, such added/removed parenthesis, modified
-  newlines/white-space. Recommended to run prettier after
-  transformation.
-- best effort transformation, it won't be possible to catch
-  everything. Make sure to double check whats not transformed.
+Some shared code exits for helping author transforms.
+
+- `solid-codemod/src/transforms/shared.js` - helpers for parsing and
+  logging changes to console.
+- `solid-codemod/src/data` - data helpers for specific Solid versions
 
 ## Contributing
 
@@ -95,10 +95,6 @@ SolidJS][feature-request-example] for your reference.
 
 - organize issues
 - provide a `classList` to `class` transform
-- document `Markup` and `shared.js` helpers
-- make it clear project focus on solid v2
-- namespace the `data` folder to solid-js@2 so we can have solid-js@3
-  or whatever
 
 ## License
 

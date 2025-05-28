@@ -4,7 +4,7 @@ const test = false
 
 // data
 
-const destination = './jsx-solidv2.json'
+const destination = './jsx.json'
 
 const o = JSON.parse(
 	!test
