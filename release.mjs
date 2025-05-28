@@ -1,7 +1,7 @@
 import { execSync as $ } from 'child_process'
 
 // bump version number
-$('npm version patch')
+$('npm version minor')
 
 // read version number
 import('./package.json', {
