@@ -95,6 +95,8 @@ SolidJS][feature-request-example] for your reference.
 
 - organize issues
 - provide a `classList` to `class` transform
+- transfer npm to the solid project
+- figure out how to autopublish to npm
 
 ## License
 
