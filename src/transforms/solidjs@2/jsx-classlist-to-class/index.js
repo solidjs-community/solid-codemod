@@ -1,4 +1,4 @@
-import { SolidMarkupV2 } from '../../../data/solid-js@2/solid-markup.js'
+import { SolidMarkupV2 } from '../../../data/solidjs@2/solid-markup.js'
 
 import {
 	log,
