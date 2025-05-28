@@ -9,7 +9,8 @@
 		"solid-codemod": "./bin/solid-codemod.js"
 	},
 	"scripts": {
-		"test": "solid-codemod"
+		"test": "solid-codemod",
+		"publish": "node ./release.mjs"
 	},
 	"repository": {
 		"type": "git",
