@@ -24,11 +24,27 @@ NOTES:
 - Once its done it will display a green `DONE`
 - Transforms should modify code when "reliable possible"
 
+## Examples
+
+- `solid-codemod` - run all transforms internal tests
+- `solid-codemod solid-js@2/jsx-properties-to-attributes` - run
+  internal tests for selected transform
+- `solid-codemod solid-js@2/jsx-properties-to-attributes .` - dry run
+  transform on current directory
+- `solid-codemod solid-js@2/jsx-properties-to-attributes . -w` - run
+  transform on current directory and write changes to files
+
 ## Codemod Transforms
 
-| name                                      | description            |
-| ----------------------------------------- | ---------------------- |
-| `solid-js@2/jsx-properties-to-attributes` | a test transformer WIP |
+### `solid-js@2/jsx-properties-to-attributes`
+
+- CamelCase attributes to lowercase on known tags (not in components)
+- Unwrap `attr:` for known attributes
+- `onsubmit="return false"` -> `attr:onsubmit="return false"`
+- Ensure `boolean` attributes values (for static/conditional values)
+- Ensure `pseudo-boolean` attributes values (for static/conditional
+  values)
+- Warn of unknown attributes
 
 ## Writing Transforms
 
@@ -53,9 +69,7 @@ SolidJS][feature-request-example] for your reference.
 
 - organize issues
 - provide a `classList` to `class` transform
-- finish `solid-js@2/jsx-properties-to-attributes` transform
 - document `Markup` and `shared.js` helpers
-- example usage should show more usage including testing
 - make it clear project focus on solid v2
 - namespace the `data` folder to solid-js@2 so we can have solid-js@3
   or whatever

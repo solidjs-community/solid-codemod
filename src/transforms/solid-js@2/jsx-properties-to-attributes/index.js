@@ -10,6 +10,14 @@ import {
 /**
  * This transform provides the following when reliable possible:
  *
+ * - CamelCase attributes to lowercase on known tags (not in components)
+ * - Unwrap `attr:` for known attributes
+ * - `onsubmit="return false"` -> `attr:onsubmit="return false"`
+ * - Ensure `boolean` attributes values (for static/conditional values)
+ * - Ensure `pseudo-boolean` attributes values (for static/conditional
+ *   values)
+ * - Warn of unknown attributes
+ *
  * @param {import('jscodeshift').FileInfo} file
  * @param {import('jscodeshift').API} api
  */
@@ -38,7 +46,7 @@ export default function transformer(file, api) {
 					attributeName,
 				)
 
-				// camcelCase to lowercase transform: tabIndex` -> `tabindex`
+				// camelCase to lowercase transform: tabIndex` -> `tabindex`
 				if (!isKnownAttribute) {
 					const newName = attributeName.toLowerCase()
 
@@ -103,7 +111,7 @@ export default function transformer(file, api) {
 				) {
 					//  BOOLEANS !
 
-					function getNewValue(value, container = false) {
+					function getNewValue(value) {
 						// <div autofocus/>
 						// <div autofocus={true/false}/>
 						if (value === null || value.type === 'BooleanLiteral') {
@@ -123,26 +131,20 @@ export default function transformer(file, api) {
 						// <div autofocus="false"/>
 						// <div autofocus="anything"/>
 						if (value.type === 'StringLiteral') {
-							const val = j.booleanLiteral(
-								value.value === 'false' || value.value === '0'
-									? false
-									: true,
+							return j.booleanLiteral(
+								value.value === 'false' ? false : true,
 							)
-							return container ? j.jsxExpressionContainer(val) : val
 						}
 
 						// <div autofocus={0}/>
 						// <div autofocus={1}/>
 						// <div autofocus={69}/>
 						if (value.type === 'NumericLiteral') {
-							const val = j.booleanLiteral(
-								value.value <= 0 ? false : true,
-							)
-							return container ? j.jsxExpressionContainer(val) : val
+							return j.booleanLiteral(value.value <= 0 ? false : true)
 						}
 					}
 
-					const newValue = getNewValue(attributeValue, true)
+					const newValue = getNewValue(attributeValue)
 
 					if (newValue) {
 						log(
@@ -153,42 +155,33 @@ export default function transformer(file, api) {
 							'to',
 							newValue.value,
 						)
-						attr.value = newValue
+						attr.value = j.jsxExpressionContainer(newValue)
 						return
 					}
 
-					// <div autofocus={state?.admin ? "false" : undefined}/>
+					function updateCondition(value, expressionKey) {
+						let newValue = getNewValue(value[expressionKey])
+						if (newValue) {
+							log(
+								file,
+								`changed condition value for ´boolean´ attribute ´${attributeName}´
+								on tag ´${tagName}´ from`,
+								value[expressionKey].value,
+								'to',
+								newValue.value,
+							)
+							value[expressionKey] = newValue
+						}
+					}
+
+					// <div autofocus={state?.admin ? "true" : "false"}/>
 					if (
 						attributeValue &&
 						attributeValue.type === 'ConditionalExpression'
 					) {
-						// consequent
-						let newValue = getNewValue(attributeValue.consequent)
-						if (newValue) {
-							log(
-								file,
-								`changed condition value for ´boolean´ attribute ´${attributeName}´
-								on tag ´${tagName}´ from`,
-								attributeValue.consequent.value,
-								'to',
-								newValue.value,
-							)
-							attributeValue.consequent = newValue
-						}
+						updateCondition(attributeValue, 'consequent')
+						updateCondition(attributeValue, 'alternate')
 
-						// alternate
-						newValue = getNewValue(attributeValue.alternate)
-						if (newValue) {
-							log(
-								file,
-								`changed condition value for ´boolean´ attribute ´${attributeName}´
-								on tag ´${tagName}´ from`,
-								attributeValue.alternate.value,
-								'to',
-								newValue.value,
-							)
-							attributeValue.alternate = newValue
-						}
 						return
 					}
 
@@ -197,33 +190,9 @@ export default function transformer(file, api) {
 						attributeValue &&
 						attributeValue.type === 'LogicalExpression'
 					) {
-						// left
-						let newValue = getNewValue(attributeValue.left)
-						if (newValue) {
-							log(
-								file,
-								`changed condition value for ´boolean´ attribute ´${attributeName}´
-								on tag ´${tagName}´ from`,
-								attributeValue.left.value,
-								'to',
-								newValue.value,
-							)
-							attributeValue.left = newValue
-						}
+						updateCondition(attributeValue, 'left')
+						updateCondition(attributeValue, 'right')
 
-						// right
-						newValue = getNewValue(attributeValue.right)
-						if (newValue) {
-							log(
-								file,
-								`changed condition value for ´boolean´ attribute ´${attributeName}´
-								on tag ´${tagName}´ from`,
-								attributeValue.right.value,
-								'to',
-								newValue.value,
-							)
-							attributeValue.right = newValue
-						}
 						return
 					}
 
@@ -236,6 +205,7 @@ export default function transformer(file, api) {
 						attributeValue.type !== 'ArrowFunctionExpression' &&
 						attributeValue.type !== 'FunctionExpression' &&
 						attributeValue.type !== 'Identifier' &&
+						attributeValue.type !== 'NullLiteral' &&
 						attributeValue.type !== 'UnaryExpression'
 					) {
 						warn(file, attributeName, attributeValue)
@@ -252,7 +222,7 @@ export default function transformer(file, api) {
 				) {
 					// PSEUDO BOOLEANS !
 
-					function getNewValue(value, container = false) {
+					function getNewValue(value) {
 						// <div spellcheck/>
 						if (!value) {
 							return j.stringLiteral('true')
@@ -266,7 +236,9 @@ export default function transformer(file, api) {
 							return
 						}
 
-						// <div spellcheck="true/false/anything"/>
+						// <div spellcheck="true"/>
+						// <div spellcheck="false"/>
+						// <div spellcheck="anything"/>
 						if (value.type === 'StringLiteral') {
 							return
 						}
@@ -291,42 +263,44 @@ export default function transformer(file, api) {
 							'to',
 							newValue.value,
 						)
-						attr.value = newValue
+						attr.value = j.jsxExpressionContainer(newValue)
 						return
 					}
 
-					// <div spellcheck={state?.admin ? "false" : undefined}/>
+					function updateCondition(value, expressionKey) {
+						let newValue = getNewValue(value[expressionKey])
+						if (newValue) {
+							log(
+								file,
+								`changed condition value for ´pseudo-boolean´ attribute ´${attributeName}´
+								on tag ´${tagName}´ from`,
+								value[expressionKey].value,
+								'to',
+								newValue.value,
+							)
+							value[expressionKey] = newValue
+						}
+					}
+
+					// <div spellcheck={state?.admin ? bla : bla}/>
 					if (
 						attributeValue &&
 						attributeValue.type === 'ConditionalExpression'
 					) {
-						// consequent
-						let newValue = getNewValue(attributeValue.consequent)
-						if (newValue) {
-							log(
-								file,
-								`changed condition value for ´pseudo-boolean´ attribute ´${attributeName}´
-									on tag ´${tagName}´ from`,
-								attributeValue.consequent.value,
-								'to',
-								newValue.value,
-							)
-							attributeValue.consequent = newValue
-						}
+						updateCondition(attributeValue, 'consequent')
+						updateCondition(attributeValue, 'alternate')
 
-						// alternate
-						newValue = getNewValue(attributeValue.alternate)
-						if (newValue) {
-							log(
-								file,
-								`changed condition value for ´pseudo-boolean´ attribute ´${attributeName}´
-									on tag ´${tagName}´ from`,
-								attributeValue.alternate.value,
-								'to',
-								newValue.value,
-							)
-							attributeValue.alternate = newValue
-						}
+						return
+					}
+
+					// <div spellcheck={state?.admin || bla }/>
+					if (
+						attributeValue &&
+						attributeValue.type === 'LogicalExpression'
+					) {
+						updateCondition(attributeValue, 'left')
+						updateCondition(attributeValue, 'right')
+
 						return
 					}
 
@@ -341,13 +315,14 @@ export default function transformer(file, api) {
 						attributeValue.type !== 'ArrowFunctionExpression' &&
 						attributeValue.type !== 'FunctionExpression' &&
 						attributeValue.type !== 'Identifier' &&
+						attributeValue.type !== 'NullLiteral' &&
 						attributeValue.type !== 'UnaryExpression'
 					) {
 						warn(file, attributeName, attributeValue)
 					}
 				}
 
-				if (!isKnownAttribute) {
+				if (!isKnownAttribute && !Markup.isCustomElement(tagName)) {
 					warn(
 						file,
 						`unknown attribute ´${attributeName}´ on tag ´${tagName}´`,
