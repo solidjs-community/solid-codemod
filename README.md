@@ -2,7 +2,7 @@
 	<img width="100%" src="https://assets.solidjs.com/banner?type=Codemod&background=tiles&project=%20" alt="Solid ARIA">
 </p>
 
-# WIP Solid Codemod
+# Solid Codemod
 
 Codemod scripts for upgrading [SolidJS][solidjs] APIs and code,
 powered by [JSCodeshift][jscodeshift].
@@ -26,17 +26,20 @@ NOTES:
 
 ## Examples
 
-- `solid-codemod` - run all transforms internal tests
+- `solid-codemod` - run all transforms internal tests.
 - `solid-codemod solid-js@2/jsx-properties-to-attributes` - run
-  internal tests for selected transform
+  internal tests for selected transform.
 - `solid-codemod solid-js@2/jsx-properties-to-attributes .` - dry run
-  transform on current directory
+  transform on current directory.
 - `solid-codemod solid-js@2/jsx-properties-to-attributes . -w` - run
-  transform on current directory and write changes to files
+  transform on current directory and write changes to files.
 
 ## Codemod Transforms
 
 ### `solid-js@2/jsx-properties-to-attributes`
+
+Used to update JSX properties vs attributes, from Solid 1.x to Solid
+2.x.
 
 - CamelCase attributes to lowercase on known tags (not in components)
 - Unwrap `attr:` for known attributes
@@ -46,12 +49,27 @@ NOTES:
   values)
 - Warn of unknown attributes
 
+Warning: Do not use in already established Solid 2.x code as it
+assumes the code is Solid 1.x. For example `false` is a valid way to
+remove an attribute in Solid 2.x, while in Solid 1.x it means to have
+an attribute with that value.
+
 ## Writing Transforms
 
 1. Look at the `transforms` folder, duplicate and edit a transform.
-2. Test your transform with `solid-codemod your-transform-name`
+2. Test your transform with
+   `solid-codemod solid-js@2/your-transform-name`
 3. Add the transform to the readme with a description
 4. May use `src/transforms/shared.js` for shared code
+
+## Gotchas
+
+- AST transformation means it may be possible to end with meaningless
+  changes, such added/removed parenthesis, modified
+  newlines/white-space. Recommended to run prettier after
+  transformation.
+- best effort transformation, it won't be possible to catch
+  everything. Make sure to double check whats not transformed.
 
 ## Contributing
 
