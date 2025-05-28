@@ -30,7 +30,7 @@ const transformers =
 	getDirectories(transformersDirectory)
 		.map(version =>
 			getDirectories(path.join(transformersDirectory, version)).map(
-				// windows won't match `solid-js@2\\transform-name`
+				// replace because else windows won't match `solid-js@2\\transform-name`
 				x => path.join(version, x).replace(/\\/g, '/'),
 			),
 		)
@@ -56,8 +56,9 @@ for (const item of process.argv.slice(2)) {
 			break
 		}
 		default: {
-			transformers.includes(item)
-				? input.transformers.push(item)
+			// replace because else windows won't match `solid-js@2\\transform-name`
+			transformers.includes(item.replace(/\\/g, '/'))
+				? input.transformers.push(item.replace(/\\/g, '/'))
 				: input.paths.push(item)
 			break
 		}
@@ -134,16 +135,16 @@ for (const transformer of input.transformers) {
 		/input\.(js|jsx|ts|tsx)$/.test(x),
 	)
 
-	for (const testFile of tests) {
-		const outputFile = testFile.replace('input.', 'output.')
-		const expectedFile = testFile.replace('input.', 'expected.')
+	for (const inputFile of tests) {
+		const outputFile = inputFile.replace('input.', 'output.')
+		const expectedFile = inputFile.replace('input.', 'expected.')
 
-		prettier(testFile)
+		prettier(inputFile)
 		prettier(expectedFile)
 
 		const expected = read(expectedFile)
 
-		copy(testFile, outputFile)
+		copy(inputFile, outputFile)
 
 		await runTransformer(transformerFile, [outputFile], true)
 
@@ -154,7 +155,7 @@ for (const transformer of input.transformers) {
 		if (result !== expected) {
 			red("Test Failed, output doesn't match!")
 
-			blue('    ' + testFile)
+			blue('    ' + inputFile)
 
 			console.log(
 				diffFiles(
@@ -165,7 +166,7 @@ for (const transformer of input.transformers) {
 
 			process.exit(1)
 		} else {
-			green(testFile)
+			green(inputFile)
 		}
 	}
 }

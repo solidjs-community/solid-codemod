@@ -57,6 +57,8 @@ SolidJS][feature-request-example] for your reference.
 - document `Markup` and `shared.js` helpers
 - example usage should show more usage including testing
 - make it clear project focus on solid v2
+- namespace the `data` folder to solid-js@2 so we can have solid-js@3
+  or whatever
 
 ## License
 

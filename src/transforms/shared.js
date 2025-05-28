@@ -38,9 +38,15 @@ export function getTagNameFromJSXElement(api, path) {
 }
 
 /**
+ * Returns tuple with attribute name as string. and for value it
+ * unwraps expressions.
+ *
  * @param {import('jscodeshift').API} api
  * @param {import('jscodeshift').JSXAttribute} attr
- * @returns {[string, string | boolean]}
+ * @returns {[
+ * 	string,
+ * 	import('jscodeshift').Expression | undefined | null,
+ * ]}
  */
 export function getAttributeNameAndValueFromJSXAttribute(api, attr) {
 	const j = api.jscodeshift
@@ -51,6 +57,7 @@ export function getAttributeNameAndValueFromJSXAttribute(api, attr) {
 	const nameNode = attr.name
 	const valueNode = attr.value
 
+	// name
 	if (nameNode.type === 'JSXIdentifier') {
 		attributeName = nameNode.name
 	} else if (nameNode.type === 'JSXNamespacedName') {
@@ -59,15 +66,14 @@ export function getAttributeNameAndValueFromJSXAttribute(api, attr) {
 		throw new Error(`[Unknown Attribute Type: ${nameNode.type}]`)
 	}
 
-	if (valueNode) {
-		// TODO figure out the best value to return
-		if (valueNode.type === 'JSXExpressionContainer') {
-			attributeValue = valueNode.expression.value
-		} else {
-			attributeValue = valueNode.value
-		}
-	} else {
-		attributeValue = true
+	// value
+	attributeValue = valueNode
+	// .expression is unwrapped
+	while (
+		attributeValue &&
+		attributeValue.type === 'JSXExpressionContainer'
+	) {
+		attributeValue = attributeValue.expression
 	}
 
 	return [attributeName, attributeValue]
@@ -76,30 +82,72 @@ export function getAttributeNameAndValueFromJSXAttribute(api, attr) {
 /** Pretty print transform changes */
 const messages = {}
 
+function print(file, color, message) {
+	const fileName = file.path || 'Unknown'
+	messages[fileName] = messages[fileName] || []
+	messages[fileName].push({ color, message })
+}
+
 /**
- * Pretty print transform log
+ * Pretty print transform log for N arguments
  *
  * @param {import('jscodeshift').FileInfo} file
  * @param {...any} message
  */
 export function log(file, ...message) {
-	const fileName = file.path || 'Unknown'
-	messages[fileName] = messages[fileName] || []
-	messages[fileName].push(message.join(' '))
+	print(file, 'log', message)
 }
 /**
- * Pretty print transform warn
+ * Pretty print transform warn for N arguments
  *
  * @param {import('jscodeshift').FileInfo} file
  * @param {...any} message
  */
 export function warn(file, ...message) {
-	log(file, `\x1b[33m${message.join(' ')}\x1b[0m`)
+	print(file, 'warn', message)
 }
 
+function orange(string) {
+	console.log(`\x1b[33m${string}\x1b[0m`)
+}
+function blue(string) {
+	console.log(`\x1b[94m${string}\x1b[0m`)
+}
 process.on('exit', () => {
-	for (const file in messages) {
-		console.log(`\x1b[32m${file}\x1b[0m`)
-		console.log(messages[file].map(x => '- ' + x).join('\n'))
+	for (const fileName in messages) {
+		blue(fileName)
+
+		for (const message of messages[fileName]) {
+			// strings
+			const newMessages = message.message.map(x =>
+				typeof x === 'string'
+					? x === ''
+						? '""'
+						: x === 'true' || x === 'false' || x === '0' || x === '1'
+							? '"' + x + '"'
+							: x
+					: typeof x === 'boolean' || typeof x === 'number'
+						? '´' + x + '´'
+						: x,
+			)
+			const stringMessages = newMessages
+				.filter(x => typeof x === 'string')
+				.join(' ')
+				.replace(/\s+/g, ' ')
+				.trim()
+
+			if (stringMessages) {
+				if (message.color === 'warn') {
+					orange(` - ${stringMessages}`)
+				} else {
+					console.log(' - ' + stringMessages)
+				}
+			}
+
+			// objects
+			newMessages.forEach(
+				x => typeof x !== 'string' && console.log(x),
+			)
+		}
 	}
 })

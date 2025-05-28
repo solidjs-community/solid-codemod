@@ -8,16 +8,7 @@ import {
 } from '../../shared.js'
 
 /**
- * This transform provides the following "fixes" when reliable
- * possible:
- *
- * 1. Change camelCase attributes to lowercase on known tags (not in
- *    components)
- * 2. Unwrap `attr:` when is not necessary
- * 3. `onsubmit="return false"` -> `attr:onsubmit="return false"`
- * 4. WIP ensure boolean attributes values (for static values)
- * 5. WIP ensure pseudo-boolean attributes values (for static values)
- * 6. Alert of unknown attribute
+ * This transform provides the following when reliable possible:
  *
  * @param {import('jscodeshift').FileInfo} file
  * @param {import('jscodeshift').API} api
@@ -28,8 +19,6 @@ export default function transformer(file, api) {
 
 	root.find(j.JSXElement).forEach(path => {
 		const tagName = getTagNameFromJSXElement(api, path)
-
-		if (!tagName) throw new Error(`Unknown tagName "${tagName}"`)
 
 		if (!Markup.isKnownTag(tagName)) {
 			// skip JSX Components and unknown tags
@@ -49,7 +38,7 @@ export default function transformer(file, api) {
 					attributeName,
 				)
 
-				// maybe case needs transform autoFocus` -> `autofocus`
+				// camcelCase to lowercase transform: tabIndex` -> `tabindex`
 				if (!isKnownAttribute) {
 					const newName = attributeName.toLowerCase()
 
@@ -60,11 +49,11 @@ export default function transformer(file, api) {
 						)
 						isKnownAttribute = true
 						attributeName = newName
-						// attr.name = j.jsxIdentifier(newName)
+						attr.name = j.jsxIdentifier(newName)
 					}
 				}
 
-				// unwrap `attr:autoFocus` -> `autofocus`
+				// unwrap `attr:tabIndex` -> `tabindex`
 				if (Markup.isNamespacedAttrAttribute(attributeName)) {
 					const newName = attributeName
 						.replace(/^attr:/, '')
@@ -77,85 +66,288 @@ export default function transformer(file, api) {
 						)
 						isKnownAttribute = true
 						attributeName = newName
-						// attr.name = j.jsxIdentifier(newName)
+						attr.name = j.jsxIdentifier(newName)
 					}
 				}
 
 				// `onsubmit="return false"` -> `attr:onsubmit="return false"`
-				if (Markup.isEventListenerAttribute(attributeName)) {
-					if (/^on[a-z]/.test(attributeName)) {
-						const newName = `attr:${attributeName}`
-						log(
-							file,
-							`renamed attribute ´${attributeName}´ to ´${newName}´ on tag ´${tagName}´`,
-						)
-						// is all lowercase, so change from onclick to attr:onclick
-						attributeName = newName
-						// attr.name = j.jsxIdentifier(newName)
+				if (Markup.isLowerCaseEventListenerAttribute(attributeName)) {
+					if (attributeValue) {
+						if (attributeValue.type === 'StringLiteral') {
+							const newName = `attr:${attributeName}`
+							log(
+								file,
+								`renamed attribute ´${attributeName}´ to ´${newName}´ on tag ´${tagName}´`,
+							)
+							isKnownAttribute = true
+							attributeName = newName
+							attr.name = j.jsxIdentifier(newName)
+						}
 					}
 				}
 
 				// skips
 				if (
 					Markup.isDataAttribute(attributeName) ||
-					Markup.isNamespacedAttribute(attributeName)
+					Markup.isNamespacedAttribute(attributeName) ||
+					Markup.isEventListenerAttribute(attributeName)
 				) {
 					return
 				}
 
 				// by value change
-				if (isKnownAttribute) {
-					// boolean to real boolean
-					if (Markup.isBooleanAttribute(tagName, attributeName)) {
-						warn(file, 'boolean!!', attributeName, attributeValue)
 
-						/*
+				if (
+					isKnownAttribute &&
+					Markup.isBooleanAttribute(tagName, attributeName)
+				) {
+					//  BOOLEANS !
+
+					function getNewValue(value, container = false) {
+						// <div autofocus/>
+						// <div autofocus={true/false}/>
+						if (value === null || value.type === 'BooleanLiteral') {
+							return
+						}
+
+						// <div autofocus={undefined}/>
 						if (
-						(typeof attributeValue === 'boolean' &&
-							attributeValue === true) ||
-						attributeValue === '{true}'
-					) {
-						console.log(
-							'boolean found!',
-							attributeName,
-							attributeValue,
-						)
-					} else*/
-						/*console.log(
-							'boolean attribute found!',
-							attributeName,
-							attributeValue,
-						)
-						*/
-					} else if (
-						Markup.isEnumeratedPseudoBooleanAttribute(
-							tagName,
-							attributeName,
-						)
-					) {
-						console.log(
-							'pseudo boolean!',
-							attributeName,
-							attributeValue,
-						)
-					} else {
-						console.log(attributeValue)
-						if (
-							(typeof attributeValue === 'string' ||
-								typeof attributeValue === 'boolean') &&
-							(attributeValue === true ||
-								attributeValue === false ||
-								attributeValue.includes('true') ||
-								attributeValue.includes('false'))
+							value.type === 'Identifier' &&
+							value.name === 'undefined'
 						) {
-							warn(
+							return
+						}
+
+						// <div autofocus=""/>
+						// <div autofocus="true"/>
+						// <div autofocus="false"/>
+						// <div autofocus="anything"/>
+						if (value.type === 'StringLiteral') {
+							const val = j.booleanLiteral(
+								value.value === 'false' || value.value === '0'
+									? false
+									: true,
+							)
+							return container ? j.jsxExpressionContainer(val) : val
+						}
+
+						// <div autofocus={0}/>
+						// <div autofocus={1}/>
+						// <div autofocus={69}/>
+						if (value.type === 'NumericLiteral') {
+							const val = j.booleanLiteral(
+								value.value <= 0 ? false : true,
+							)
+							return container ? j.jsxExpressionContainer(val) : val
+						}
+					}
+
+					const newValue = getNewValue(attributeValue, true)
+
+					if (newValue) {
+						log(
+							file,
+							`changed value for ´boolean´ attribute ´${attributeName}´
+							on tag ´${tagName}´ from`,
+							!attributeValue ? true : attributeValue.value,
+							'to',
+							newValue.value,
+						)
+						attr.value = newValue
+						return
+					}
+
+					// <div autofocus={state?.admin ? "false" : undefined}/>
+					if (
+						attributeValue &&
+						attributeValue.type === 'ConditionalExpression'
+					) {
+						// consequent
+						let newValue = getNewValue(attributeValue.consequent)
+						if (newValue) {
+							log(
 								file,
-								`what is this? attribute ´${attributeName}´ on tag ´${tagName}´`,
+								`changed condition value for ´boolean´ attribute ´${attributeName}´
+								on tag ´${tagName}´ from`,
+								attributeValue.consequent.value,
+								'to',
+								newValue.value,
+							)
+							attributeValue.consequent = newValue
+						}
+
+						// alternate
+						newValue = getNewValue(attributeValue.alternate)
+						if (newValue) {
+							log(
+								file,
+								`changed condition value for ´boolean´ attribute ´${attributeName}´
+								on tag ´${tagName}´ from`,
+								attributeValue.alternate.value,
+								'to',
+								newValue.value,
+							)
+							attributeValue.alternate = newValue
+						}
+						return
+					}
+
+					// <div autofocus={state?.admin || "false" }/>
+					if (
+						attributeValue &&
+						attributeValue.type === 'LogicalExpression'
+					) {
+						// left
+						let newValue = getNewValue(attributeValue.left)
+						if (newValue) {
+							log(
+								file,
+								`changed condition value for ´boolean´ attribute ´${attributeName}´
+								on tag ´${tagName}´ from`,
+								attributeValue.left.value,
+								'to',
+								newValue.value,
+							)
+							attributeValue.left = newValue
+						}
+
+						// right
+						newValue = getNewValue(attributeValue.right)
+						if (newValue) {
+							log(
+								file,
+								`changed condition value for ´boolean´ attribute ´${attributeName}´
+								on tag ´${tagName}´ from`,
+								attributeValue.right.value,
+								'to',
+								newValue.value,
+							)
+							attributeValue.right = newValue
+						}
+						return
+					}
+
+					if (
+						attributeValue &&
+						attributeValue.type !== 'BooleanLiteral' &&
+						attributeValue.type !== 'MemberExpression' &&
+						attributeValue.type !== 'CallExpression' &&
+						// attributeValue.type !== 'LogicalExpression' &&
+						attributeValue.type !== 'ArrowFunctionExpression' &&
+						attributeValue.type !== 'FunctionExpression' &&
+						attributeValue.type !== 'Identifier' &&
+						attributeValue.type !== 'UnaryExpression'
+					) {
+						warn(file, attributeName, attributeValue)
+					}
+					return
+				}
+
+				if (
+					isKnownAttribute &&
+					Markup.isEnumeratedPseudoBooleanAttribute(
+						tagName,
+						attributeName,
+					)
+				) {
+					// PSEUDO BOOLEANS !
+
+					function getNewValue(value, container = false) {
+						// <div spellcheck/>
+						if (!value) {
+							return j.stringLiteral('true')
+						}
+
+						// <div spellcheck={undefined}/>
+						if (
+							value.type === 'Identifier' &&
+							value.name === 'undefined'
+						) {
+							return
+						}
+
+						// <div spellcheck="true/false/anything"/>
+						if (value.type === 'StringLiteral') {
+							return
+						}
+
+						// <div spellcheck={true}/>
+						// <div spellcheck={false}/>
+						if (value.type === 'BooleanLiteral') {
+							return j.stringLiteral(
+								value.value === true ? 'true' : 'false',
 							)
 						}
 					}
-					// boolean to enumerated pseudo boolean
-				} else {
+
+					const newValue = getNewValue(attributeValue)
+
+					if (newValue) {
+						log(
+							file,
+							`changed value for ´pseudo-boolean´ attribute ´${attributeName}´
+								on tag ´${tagName}´ from`,
+							!attributeValue ? true : attributeValue.value,
+							'to',
+							newValue.value,
+						)
+						attr.value = newValue
+						return
+					}
+
+					// <div spellcheck={state?.admin ? "false" : undefined}/>
+					if (
+						attributeValue &&
+						attributeValue.type === 'ConditionalExpression'
+					) {
+						// consequent
+						let newValue = getNewValue(attributeValue.consequent)
+						if (newValue) {
+							log(
+								file,
+								`changed condition value for ´pseudo-boolean´ attribute ´${attributeName}´
+									on tag ´${tagName}´ from`,
+								attributeValue.consequent.value,
+								'to',
+								newValue.value,
+							)
+							attributeValue.consequent = newValue
+						}
+
+						// alternate
+						newValue = getNewValue(attributeValue.alternate)
+						if (newValue) {
+							log(
+								file,
+								`changed condition value for ´pseudo-boolean´ attribute ´${attributeName}´
+									on tag ´${tagName}´ from`,
+								attributeValue.alternate.value,
+								'to',
+								newValue.value,
+							)
+							attributeValue.alternate = newValue
+						}
+						return
+					}
+
+					if (
+						attributeValue &&
+						attributeValue.type !== 'BinaryExpression' &&
+						attributeValue.type !== 'NumericLiteral' &&
+						attributeValue.type !== 'StringLiteral' &&
+						attributeValue.type !== 'MemberExpression' &&
+						attributeValue.type !== 'CallExpression' &&
+						// attributeValue.type !== 'LogicalExpression' &&
+						attributeValue.type !== 'ArrowFunctionExpression' &&
+						attributeValue.type !== 'FunctionExpression' &&
+						attributeValue.type !== 'Identifier' &&
+						attributeValue.type !== 'UnaryExpression'
+					) {
+						warn(file, attributeName, attributeValue)
+					}
+				}
+
+				if (!isKnownAttribute) {
 					warn(
 						file,
 						`unknown attribute ´${attributeName}´ on tag ´${tagName}´`,

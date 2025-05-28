@@ -1,6 +1,7 @@
 import solidv2 from '../data/jsx-solidv2.json' with { type: 'json' }
 
 // https://github.com/ryansolid/dom-expressions/blob/next/packages/dom-expressions/src/jsx-h.d.ts#L795
+// `global.autofocus` is boolean so we can assume all other booleans have the same type
 const BooleanAttribute = solidv2.attributes.global.autofocus
 
 export const Markup = new (class Markup {
@@ -11,7 +12,7 @@ export const Markup = new (class Markup {
 	 * @returns {boolean}
 	 */
 	isKnownTag(tagName) {
-		return !!solidv2.tags[tagName] || tagName.includes('-')
+		return !!solidv2.tags[tagName] || this.isCustomElement(tagName)
 	}
 
 	/**
@@ -116,9 +117,28 @@ export const Markup = new (class Markup {
 	 */
 	isEventListenerAttribute(attributeName) {
 		return (
-			/^on[a-z]/i.test(attributeName) ||
+			this.isLowerCaseEventListenerAttribute(attributeName) ||
+			this.isCamelCaseEventListenerAttribute(attributeName) ||
 			this.isNamespacedEventListenerAttribute(attributeName)
 		)
+	}
+	/**
+	 * Returns `true` when is a lowercase event listener
+	 *
+	 * @param {string} attributeName
+	 * @returns {boolean}
+	 */
+	isLowerCaseEventListenerAttribute(attributeName) {
+		return /^on[a-z]/.test(attributeName)
+	}
+	/**
+	 * Returns `true` when is a camcelCase event listener
+	 *
+	 * @param {string} attributeName
+	 * @returns {boolean}
+	 */
+	isCamelCaseEventListenerAttribute(attributeName) {
+		return /^on[A-Z]/.test(attributeName)
 	}
 	/**
 	 * Returns `true` when is a namespaced `on:`
@@ -167,7 +187,7 @@ export const Markup = new (class Markup {
 	}
 
 	/**
-	 * Returns `true` when is a solid JSX BooleanAttribute
+	 * Returns `true` when is a Solid JSX BooleanAttribute
 	 *
 	 * @param {string} tagName
 	 * @param {string} attributeName
@@ -186,7 +206,7 @@ export const Markup = new (class Markup {
 	}
 
 	/**
-	 * Returns `true` when is a solid JSX EnumeratedPseudoBoolean
+	 * Returns `true` when is a Solid JSX EnumeratedPseudoBoolean
 	 *
 	 * @param {string} tagName
 	 * @param {string} attributeName
@@ -207,7 +227,7 @@ export const Markup = new (class Markup {
 	}
 
 	/**
-	 * Returns `string` with solid JSX Type for Attribute
+	 * Returns `string` with Solid JSX Type for Attribute
 	 *
 	 * @param {string} tagName
 	 * @param {string} attributeName
