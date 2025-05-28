@@ -27,16 +27,16 @@ NOTES:
 ## Examples
 
 - `solid-codemod` - run all transforms internal tests.
-- `solid-codemod solidjs@2/jsx-properties-to-attributes` - run
+- `solid-codemod solid@v2/jsx-properties-to-attributes` - run
   internal tests for selected transform.
-- `solid-codemod solidjs@2/jsx-properties-to-attributes .` - dry run
+- `solid-codemod solid@v2/jsx-properties-to-attributes .` - dry run
   transform on current directory.
-- `solid-codemod solidjs@2/jsx-properties-to-attributes . -w` - run
+- `solid-codemod solid@v2/jsx-properties-to-attributes . -w` - run
   transform on current directory and write changes to files.
 
 ## Codemod Transforms
 
-### `solidjs@2/jsx-properties-to-attributes`
+### `solid@v2/jsx-properties-to-attributes`
 
 Used to update JSX properties vs attributes, from Solid 1.x to Solid
 2.x.
@@ -54,7 +54,7 @@ assumes the code is Solid 1.x. For example `false` is a valid way to
 remove an attribute in Solid 2.x, while in Solid 1.x it means to have
 an attribute with that value.
 
-### `solidjs@2/jsx-classlist-to-class`
+### `solid@v2/jsx-classlist-to-class`
 
 Used to rename `classList` attribute to `class`
 https://docs.solidjs.com/concepts/components/class-style
@@ -63,7 +63,7 @@ https://docs.solidjs.com/concepts/components/class-style
 
 1. Look at the `transforms` folder, duplicate and edit a transform.
 2. Test your transform with
-   `solid-codemod solidjs@2/your-transform-name`
+   `solid-codemod solid@v2/your-transform-name`
 3. Add the transform to the readme with a description
 4. May use `src/transforms/shared.js` for shared code
 

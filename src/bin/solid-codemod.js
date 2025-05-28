@@ -30,7 +30,7 @@ const transformers =
 	getDirectories(transformersDirectory)
 		.map(version =>
 			getDirectories(path.join(transformersDirectory, version)).map(
-				// replace because else windows won't match `solidjs@2\\transform-name`
+				// replace because else windows won't match `solid@v2\\transform-name`
 				x => path.join(version, x).replace(/\\/g, '/'),
 			),
 		)
@@ -56,7 +56,7 @@ for (const item of process.argv.slice(2)) {
 			break
 		}
 		default: {
-			// replace because else windows won't match `solidjs@2\\transform-name`
+			// replace because else windows won't match `solid@v2\\transform-name`
 			transformers.includes(item.replace(/\\/g, '/'))
 				? input.transformers.push(item.replace(/\\/g, '/'))
 				: input.paths.push(item)
