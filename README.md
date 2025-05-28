@@ -54,14 +54,10 @@ assumes the code is Solid 1.x. For example `false` is a valid way to
 remove an attribute in Solid 2.x, while in Solid 1.x it means to have
 an attribute with that value.
 
-## Gotchas
+### `solid-js@2/jsx-classlist-to-class`
 
-- AST transformation means it may be possible to end with meaningless
-  changes, such added/removed parenthesis, modified
-  newlines/white-space. Recommended to run prettier after
-  transformation.
-- best effort transformation, it won't be possible to catch
-  everything. Make sure to double check whats not transformed.
+Used to rename `classList` attribute to `class`
+https://docs.solidjs.com/concepts/components/class-style
 
 ## Writing Transforms
 
@@ -75,9 +71,9 @@ an attribute with that value.
 
 Some shared code exits for helping author transforms.
 
-- `solid-codemod/src/transforms/shared.js` - helpers for parsing and
-  logging changes to console.
-- `solid-codemod/src/data` - data helpers for specific Solid versions
+- `src/transforms/shared.js` - helpers for parsing and logging changes
+  to console.
+- `src/data` - data helpers for specific Solid versions
 
 ## Contributing
 
@@ -94,7 +90,6 @@ SolidJS][feature-request-example] for your reference.
 ## TODO
 
 - organize issues
-- provide a `classList` to `class` transform
 - transfer npm to the solid project
 - figure out how to autopublish to npm
 
