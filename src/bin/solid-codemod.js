@@ -80,11 +80,14 @@ if (input.paths.length && input.transformers.length) {
 	blue('Running Transforms...\n')
 
 	for (const transformer of input.transformers) {
-		const transformerFile = path.join(
+		let transformerFile = path.join(
 			transformersDirectory,
 			transformer,
 			'index.js',
 		)
+		if (!exists(transformerFile)) {
+			transformerFile = transformerFile.replace(/\.js$/, '.ts')
+		}
 
 		const promises = []
 
@@ -121,7 +124,10 @@ for (const transformer of input.transformers) {
 		transformer,
 	)
 
-	const transformerFile = path.join(transformerDirectory, 'index.js')
+	let transformerFile = path.join(transformerDirectory, 'index.js')
+	if (!exists(transformerFile)) {
+		transformerFile = transformerFile.replace(/\.js$/, '.ts')
+	}
 	const transformerTestDirectory = path.join(
 		transformerDirectory,
 		'test',
