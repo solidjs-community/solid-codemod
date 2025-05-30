@@ -27,8 +27,8 @@ NOTES:
 ## Examples
 
 - `solid-codemod` - run all transforms internal tests.
-- `solid-codemod solid@v2/jsx-properties-to-attributes` - run
-  internal tests for selected transform.
+- `solid-codemod solid@v2/jsx-properties-to-attributes` - run internal
+  tests for selected transform.
 - `solid-codemod solid@v2/jsx-properties-to-attributes .` - dry run
   transform on current directory.
 - `solid-codemod solid@v2/jsx-properties-to-attributes . -w` - run
@@ -58,6 +58,11 @@ an attribute with that value.
 
 Used to rename `classList` attribute to `class`
 https://docs.solidjs.com/concepts/components/class-style
+
+### `solid@v2/jsx-array-map-to-for`
+
+Used to change `array.map` into the `<For/>` Solid component
+https://docs.solidjs.com/reference/components/for
 
 ## Writing Transforms
 
