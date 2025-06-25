@@ -171,6 +171,7 @@
     },
     "dfn": {},
     "dialog": {
+      "closedby": "'any' | 'closerequest' | 'none' | false",
       "open": "true | false | ''",
       "tabindex": "never"
     },
@@ -187,6 +188,7 @@
       "type": "string | false",
       "width": "number | string | false"
     },
+    "fencedframe": {},
     "fieldset": {
       "disabled": "true | false | ''",
       "form": "string | false",
@@ -330,6 +332,7 @@
       "alt": "string | false",
       "attributionsrc": "string | false",
       "border": "string | false",
+      "browsingtopics": "string | false",
       "crossorigin": "'anonymous' | 'use-credentials' | '' | true | false",
       "decoding": "'sync' | 'async' | 'auto' | false",
       "fetchpriority": "'high' | 'low' | 'auto' | false",
@@ -491,7 +494,8 @@
       "typemustmatch": "true | false | ''",
       "usemap": "string | false",
       "vspace": "number | string | false",
-      "width": "number | string | false"
+      "width": "number | string | false",
+      "wmode": "string | false"
     },
     "ol": {
       "compact": "true | false | ''",
@@ -548,6 +552,7 @@
       "defer": "true | false | ''",
       "event": "string | false",
       "fetchpriority": "'high' | 'low' | 'auto' | false",
+      "for": "string | false",
       "integrity": "string | false",
       "language": "string | false",
       "nomodule": "true | false | ''",
@@ -567,6 +572,7 @@
       "size": "number | string | false",
       "value": "string | string[] | number | false"
     },
+    "selectedcontent": {},
     "shadow": {},
     "slot": {
       "name": "string | false"
@@ -4301,6 +4307,7 @@
       "onWaiting": "EventHandlerUnion<T, Event>",
       "on:wheel": "EventHandlerWithOptionsUnion<T, WheelEvent>",
       "onWheel": "EventHandlerUnion<T, WheelEvent>",
+      "part": "string | false",
       "role": "'alert' | 'alertdialog' | 'application' | 'article' | 'banner' | 'button' | 'cell' | 'checkbox' | 'columnheader' | 'combobox' | 'complementary' | 'contentinfo' | 'definition' | 'dialog' | 'directory' | 'document' | 'feed' | 'figure' | 'form' | 'grid' | 'gridcell' | 'group' | 'heading' | 'img' | 'link' | 'list' | 'listbox' | 'listitem' | 'log' | 'main' | 'marquee' | 'math' | 'menu' | 'menubar' | 'menuitem' | 'menuitemcheckbox' | 'menuitemradio' | 'meter' | 'navigation' | 'none' | 'note' | 'option' | 'presentation' | 'progressbar' | 'radio' | 'radiogroup' | 'region' | 'row' | 'rowgroup' | 'rowheader' | 'scrollbar' | 'search' | 'searchbox' | 'separator' | 'slider' | 'spinbutton' | 'status' | 'switch' | 'tab' | 'table' | 'tablist' | 'tabpanel' | 'term' | 'textbox' | 'timer' | 'toolbar' | 'tooltip' | 'tree' | 'treegrid' | 'treeitem' | false",
       "slot": "string | false",
       "style": "CSSProperties | string | false",
@@ -4329,7 +4336,6 @@
       "itemscope": "true | false | ''",
       "itemtype": "string | false",
       "lang": "string | false",
-      "part": "string | false",
       "popover": "'' | true | 'manual' | 'auto' | false",
       "prefix": "string | false",
       "property": "string | false",
@@ -4338,7 +4344,9 @@
       "title": "string | false",
       "translate": "'yes' | 'no' | false",
       "typeof": "string | false",
+      "virtualkeyboardpolicy": "'' | true | 'auto' | 'manual' | false",
       "vocab": "string | false",
+      "writingsuggestions": "'false' | 'true' | false",
       "displaystyle": "true | false | ''",
       "href": "string | false",
       "mathbackground": "string | false",
