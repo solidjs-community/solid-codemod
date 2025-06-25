@@ -1,4 +1,4 @@
-import { read, write } from '../utils.js'
+import { read, write } from '../../utils.js'
 
 const test = false
 
