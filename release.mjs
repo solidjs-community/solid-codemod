@@ -12,7 +12,7 @@ import('./package.json', {
 	// git add, commit with version number
 	$('git add --all')
 	$('git commit -m "v' + version + '"')
-	$('git tag "v' + version + '"')
+	$('git tag "v' + version + '" -m "v' + version + '"')
 
 	// git push / npm publish
 	$('git push --all')
