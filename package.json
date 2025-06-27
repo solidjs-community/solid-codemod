@@ -1,6 +1,6 @@
 {
 	"name": "solid-codemod",
-	"version": "2.3.0",
+	"version": "2.4.0",
 	"description": "Codemod scripts for SolidJS JavaScript library",
 	"homepage": "https://github.com/solidjs-community/solid-codemod",
 	"license": "MIT",
