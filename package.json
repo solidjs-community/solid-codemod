@@ -6,7 +6,7 @@
 	"license": "MIT",
 	"type": "module",
 	"bin": {
-		"solid-codemod": "./bin/solid-codemod.js"
+		"solid-codemod": "bin/solid-codemod.js"
 	},
 	"scripts": {
 		"test": "solid-codemod",
